@@ -37,7 +37,7 @@
     "nock": "^8.0.0",
     "source-map-support": "^0.4.0",
     "taskcluster-lib-testing": "^1.0.0",
-    "aws-sdk": "^2.0.0"
+    "aws-sdk": "^2.5.2"
   },
   "main": "./lib/index.js"
 }

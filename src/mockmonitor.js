@@ -4,12 +4,21 @@ let assert = require('assert');
 let utils = require('./utils');
 
 class MockMonitor {
-  constructor(opts, counts = {}, measures = {}, errors = []) {
+  constructor(opts, counts = {}, measures = {}, errors = [], records = []) {
     this._opts = opts;
     this.counts = counts;
     this.measures = measures;
     this.errors = errors;
+    this.records = records;
     this._resourceInterval = null;
+    this.firehose = {
+      log: (record) => {
+        records.push(record);
+      },
+      close: () => {},
+      drained: () => {},
+      flush: async () => {},
+    };
   }
 
   async reportError(err, level='error', tags={}) {

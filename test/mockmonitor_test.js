@@ -1,5 +1,6 @@
 suite('MockMonitor', () => {
   let assert = require('assert');
+  let Promise = require('bluebird');
   let monitoring = require('../');
   let debug = require('debug')('test');
   let testing = require('taskcluster-lib-testing');

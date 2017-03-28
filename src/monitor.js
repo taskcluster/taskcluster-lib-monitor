@@ -1,17 +1,18 @@
 let debug = require('debug')('taskcluster-lib-monitor');
 let _ = require('lodash');
-let Promise = require('promise');
+let Promise = require('bluebird');
 let raven = require('raven');
 let utils = require('./utils');
 
 class Monitor {
 
-  constructor(sentryDSN, sentry, statsumClient, opts) {
+  constructor(sentryDSN, sentry, statsumClient, firehose, opts) {
     this._opts = opts;
     this._sentryDSN = sentryDSN;
     // This must be a Promise that resolves to {client, expires}
-    this._sentry = sentry || Promise.resolve({client: null, expires: new Date(0)}); 
+    this._sentry = sentry || Promise.resolve({client: null, expires: new Date(0)});
     this._statsum = statsumClient;
+    this.firehose = firehose;
     this._resourceInterval = null;
   }
 
@@ -80,7 +81,10 @@ class Monitor {
   }
 
   async flush() {
-    await this._statsum.flush();
+    await Promise.all([
+      this._statsum.flush(),
+      this.firehose.flush(),
+    ]);
   }
 
   prefix(prefix) {
@@ -90,6 +94,7 @@ class Monitor {
       this._sentryDSN,
       this._sentry,
       this._statsum.prefix(prefix),
+      this.firehose,
       newopts
     );
   }

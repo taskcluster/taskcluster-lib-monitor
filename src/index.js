@@ -1,12 +1,12 @@
 let debug = require('debug')('taskcluster-lib-monitor');
 let _ = require('lodash');
 let assert = require('assert');
-let Promise = require('promise');
 let taskcluster = require('taskcluster-client');
 let utils = require('./utils');
 let Statsum = require('statsum');
 let MockMonitor = require('./mockmonitor');
 let Monitor = require('./monitor');
+let firehoses = require('./firehoses');
 
 /**
  * Create a new monitor, given options:
@@ -25,6 +25,10 @@ let Monitor = require('./monitor');
  *   // If credentials aren't given, you must supply:
  *   statsumToken: async (project) => {token, expires, baseUrl}
  *   sentryDNS: async (project) => {dsn: {secret: '...'}, expires}
+ *   // If you'd like to use the logging bits, you'll need to provide
+ *   // s3 creds directly for now
+ *   aws: {credentials: {accessKeyId, secretAccessKey}},
+ *   streamName: '', // kinesis stream to allow logging to
  * }
  */
 async function monitor(options) {
@@ -32,9 +36,12 @@ async function monitor(options) {
     patchGlobal: true,
     bailOnUnhandledRejection: false,
     reportStatsumErrors: true,
+    reportFirehoseErrors: true,
     resourceInterval: 10,
     crashTimeout: 5 * 1000,
     mock: false,
+    streamName: null,
+    aws: null,
   });
   assert(options.authBaseUrl || options.credentials || options.statsumToken && options.sentryDSN ||
          options.mock,
@@ -45,6 +52,14 @@ async function monitor(options) {
   if (options.mock) {
     return new MockMonitor(options);
   }
+
+  let firehose;
+  if (!options.aws && !options.streamName) {
+    firehose = new firehoses.NoopFirehose();
+  } else {
+    firehose = new firehoses.Firehose(options);
+  }
+  await firehose.setup();
 
   // Find functions for statsum and sentry
   let statsumToken = options.statsumToken;
@@ -77,10 +92,13 @@ async function monitor(options) {
     emitErrors: options.reportStatsumErrors,
   });
 
-  let m = new Monitor(sentryDSN, null, statsum, options);
+  let m = new Monitor(sentryDSN, null, statsum, firehose, options);
 
   if (options.reportStatsumErrors) {
     statsum.on('error', err => m.reportError(err, 'warning'));
+  }
+  if (options.reportFirehoseErrors) {
+    firehose.on('error', err => m.reportError(err, 'warning'));
   }
 
   if (options.patchGlobal) {
@@ -93,6 +111,7 @@ async function monitor(options) {
       }, options.crashTimeout);
       try {
         await m.reportError(err, 'fatal', {});
+        await m.firehose.close();
         console.log('Succesfully reported error to Sentry.');
       } catch (e) {
         console.log('Failed to report to Sentry with error:');

@@ -59,7 +59,7 @@ The available options are:
     gracefully stopping as well.
  * `mock` - If true, the monitoring object will be a fake that stores data for testing but does not report it.
  * `aws` - If provided, these should be of the form `{credentials: {accessKeyId: '...', secretAccessKey: '...'}, region: '...'}`
- * `streamName` - If provided, this should be the name of a AWS Firehose deliveryStream that can be written to with the aws creds
+ * `logName` - If provided, this should be the name of a AWS Firehose deliveryStream that can be written to with the aws creds
 
 ### Measuring and Counting Things
 
@@ -240,10 +240,10 @@ like audit logs that we want to keep for a long time. Records must be less than 
     let monitor = await monitoring({
       ...,
       aws: {credentials: {accessKeyId: 'foo', secretAccessKey: 'bar'}, region: 'us-east-1'},
-      streamName: 'audit-log-stream',
+      logName: 'audit-log-stream',
     });
-    monitor.firehose.log({foo: 'bar', baz: 233}); // This will be submitted on a timed interval
-    await monitor.firehose.close(); // This will stop accepting records and await them all being submitted
+    monitor.log({foo: 'bar', baz: 233}); // This will be submitted on a timed interval
+    await monitor.flush(); // This will await all records being submitted
 ```
 
 Testing

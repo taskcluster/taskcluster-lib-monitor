@@ -11,20 +11,16 @@ class MockMonitor {
     this.errors = errors;
     this.records = records;
     this._resourceInterval = null;
-    this.firehose = {
-      log: (record) => {
-        records.push(record);
-      },
-      close: () => {},
-      drained: () => {},
-      flush: async () => {},
-    };
   }
 
   async reportError(err, level='error', tags={}) {
     debug('reportError: %j', err);
     this.errors.push(err);
     return true;
+  }
+
+  log(record) {
+    this.records.push(record);
   }
 
   async captureError(err, level='error', tags={}) {

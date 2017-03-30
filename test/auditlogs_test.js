@@ -1,11 +1,11 @@
-suite('Firehose', () => {
+suite('Audit Logs', () => {
   let _ = require('lodash');
   let assert = require('assert');
   let monitoring = require('../');
   let AWS = require('aws-sdk-mock');
   let testing = require('taskcluster-lib-testing');
 
-  let streamName = 'mocked-stream';
+  let logName = 'mocked-stream';
   let monitor = null;
   let records = {};
 
@@ -38,10 +38,10 @@ suite('Firehose', () => {
       credentials: {clientId: 'test-client', accessToken: 'test'},
       patchGlobal: false,
       reportStatsumErrors: false,
-      reportFirehoseErrors: false,
+      reportAuditLogErrors: false,
       resourceInterval: 1,
       aws: {credentials: {accessKeyId: 'foo', secretAccessKey: 'bar'}, region: 'us-east-1'},
-      streamName,
+      logName,
     });
   });
 
@@ -52,35 +52,42 @@ suite('Firehose', () => {
 
   test('should write logs on explicit flush', async function () {
     let subject = {test: 123};
-    monitor.firehose.log(subject);
+    monitor.log(subject);
     await monitor.flush();
-    assert.equal(records[streamName].length, 1);
-    assert.deepEqual(records[streamName].map(JSON.parse)[0], subject);
+    assert.equal(records[logName].length, 1);
+    assert.deepEqual(records[logName].map(JSON.parse)[0], subject);
   });
 
   test('should write logs on 500 records', async function () {
     let subjects = _.range(5302).map(i => ({foo: i}));
-    subjects.forEach(subject => monitor.firehose.log(subject));
-    await monitor.firehose.close();
-    assert.equal(records[streamName].length, 5302);
-    assert.deepEqual(records[streamName].map(JSON.parse), subjects);
+    subjects.forEach(subject => monitor.log(subject));
+    await monitor.flush();
+    assert.equal(records[logName].length, 5302);
+    assert.deepEqual(records[logName].map(JSON.parse), subjects);
   });
 
   test('should write logs on too many bytes', async function () {
     // This should get the records to be over 4MB in total
     let subjects = _.range(250).map(i => ({foo: i, bar: _.repeat('#', 16000)}));
-    subjects.forEach(subject => monitor.firehose.log(subject));
-    await monitor.firehose.close();
-    assert.equal(records[streamName].length, 250);
-    assert.deepEqual(records[streamName].map(JSON.parse), subjects);
+    subjects.forEach(subject => monitor.log(subject));
+    await monitor.flush();
+    assert.equal(records[logName].length, 250);
+    assert.deepEqual(records[logName].map(JSON.parse), subjects);
   });
 
   test('should write logs on timeout', async function () {
     let subject = {test: 1000, timerthing: true};
-    monitor.firehose.log(subject);
-    await testing.sleep(2000); // Should be flushing every second during testing
-    assert.equal(records[streamName].length, 1);
-    assert.deepEqual(records[streamName].map(JSON.parse)[0], subject);
+    monitor.log(subject);
+    await testing.poll(async () => {
+      assert.equal(records[logName].length, 1);
+      assert.deepEqual(records[logName].map(JSON.parse)[0], subject);
+    });
+    subject = {test: 2000, timerthing: true};
+    monitor.log(subject);
+    await testing.poll(async () => {
+      assert.equal(records[logName].length, 2);
+      assert.deepEqual(records[logName].map(JSON.parse)[1], subject);
+    });
   });
 
   test('should write previously failed records', async function () {
@@ -104,10 +111,12 @@ suite('Firehose', () => {
       {test: 4000},
       {test: 5000},
     ];
-    subjects.forEach(subject => monitor.firehose.log(subject));
-    await monitor.firehose.close();
-    assert.equal(records[streamName].length, 5);
-    assert.deepEqual(records[streamName].map(JSON.parse), subjects);
+    subjects.forEach(subject => monitor.log(subject));
+    await monitor.flush();
+    await testing.poll(async () => {
+      assert.equal(records[logName].length, 5);
+      assert.deepEqual(records[logName].map(JSON.parse), subjects);
+    });
   });
 
   test('should eventually stop trying to resubmit', async function () {
@@ -119,8 +128,8 @@ suite('Firehose', () => {
       });
     });
     let closed = false;
-    monitor.firehose.log({test: 'foobar'});
-    monitor.firehose.close().then(() => {closed = true;});
+    monitor.log({test: 'foobar'});
+    monitor.flush().then(() => {closed = true;});
     await testing.sleep(1000);
     assert(closed, 'Failed to reject permanently failing submission.');
   });
@@ -137,9 +146,11 @@ suite('Firehose', () => {
       records[DeliveryStreamName] = records[DeliveryStreamName].concat(params.Records.map(x => x.Data.trim()));
       callback(null, {FailedPutCount: 0});
     });
-    monitor.firehose.log({test: 'foobar'});
-    monitor.firehose.log({test: 'foobar2'});
-    await monitor.firehose.close();
-    assert.equal(records[streamName].length, 2);
+    monitor.log({test: 'foobar'});
+    monitor.log({test: 'foobar2'});
+    await monitor.flush();
+    await testing.poll(async () => {
+      assert.equal(records[logName].length, 2);
+    });
   });
 });

@@ -6,13 +6,13 @@ let utils = require('./utils');
 
 class Monitor {
 
-  constructor(sentryDSN, sentry, statsumClient, firehose, opts) {
+  constructor(sentryDSN, sentry, statsumClient, auditlog, opts) {
     this._opts = opts;
     this._sentryDSN = sentryDSN;
     // This must be a Promise that resolves to {client, expires}
     this._sentry = sentry || Promise.resolve({client: null, expires: new Date(0)});
     this._statsum = statsumClient;
-    this.firehose = firehose;
+    this._auditlog = auditlog;
     this._resourceInterval = null;
   }
 
@@ -66,6 +66,10 @@ class Monitor {
     });
   }
 
+  log(record) {
+    this._auditlog.log(record);
+  }
+
   // captureError is an alias for reportError to match up
   // with the raven api better.
   async captureError(err, level='error', tags={}) {
@@ -83,7 +87,7 @@ class Monitor {
   async flush() {
     await Promise.all([
       this._statsum.flush(),
-      this.firehose.flush(),
+      this._auditlog.flush(),
     ]);
   }
 
@@ -94,7 +98,7 @@ class Monitor {
       this._sentryDSN,
       this._sentry,
       this._statsum.prefix(prefix),
-      this.firehose,
+      this._auditlog,
       newopts
     );
   }

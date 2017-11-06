@@ -33,7 +33,7 @@ suite('Statsum', () => {
     authmock.teardown();
   });
 
-  test('should have written', async function (done) {
+  test('should have written', async function(done) {
     monitor.count('testing', 10);
     await monitor.flush();
 

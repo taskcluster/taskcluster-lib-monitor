@@ -22,7 +22,7 @@ suite('Sentry', () => {
     authmock.teardown();
   });
 
-  test('should log to sentry', async function (done) {
+  test('should log to sentry', async function(done) {
 
     let sentryScope = nock('https://app.getsentry.com')
       .filteringRequestBody(/.*/, '*')
@@ -49,7 +49,7 @@ suite('Sentry', () => {
     assert.deepEqual(results, [true, true, true]);
   });
 
-  test('should handle sentry error', async function (done) {
+  test('should handle sentry error', async function(done) {
 
     let sentryScope = nock('https://app.getsentry.com')
       .filteringRequestBody(/.*/, '*')

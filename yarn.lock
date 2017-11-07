@@ -2077,7 +2077,7 @@ promise@^6.1.0:
   dependencies:
     asap "~1.0.0"
 
-promise@^7.0.4, promise@^7.1.1:
+promise@^7.1.1:
   version "7.1.1"
   resolved "https://registry.yarnpkg.com/promise/-/promise-7.1.1.tgz#489654c692616b8aa55b0724fa809bb7db49c5bf"
   dependencies:

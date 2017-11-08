@@ -20,13 +20,13 @@
   },
   "dependencies": {
     "aws-sdk": "^2.30.0",
-    "babel-runtime": "^6.0.0",
-    "bluebird": "^3.5.0",
-    "debug": "^2.2.0",
+    "babel-runtime": "^6.26.0",
+    "bluebird": "^3.5.1",
+    "debug": "^3.1.0",
     "lodash": "^4.5.1",
-    "raven": "^1.1.1",
+    "raven": "^2.2.1",
     "statsum": "^0.5.1",
-    "taskcluster-client": "^1.0.1",
+    "taskcluster-client": "^3.0.3",
     "usage": "^0.7.1"
   },
   "devDependencies": {

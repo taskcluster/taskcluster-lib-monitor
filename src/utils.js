@@ -112,7 +112,7 @@ export function timer(monitor, prefix, funcOrPromise) {
   if (funcOrPromise instanceof Function) {
     try {
       funcOrPromise = funcOrPromise();
-    } catch(e) {
+    } catch (e) {
       // If this is a sync function that throws, we let it...
       // We just remember to call done() afterwards
       done();

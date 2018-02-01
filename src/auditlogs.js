@@ -55,7 +55,7 @@ class FirehoseLog extends events.EventEmitter {
   }
 
   _scheduleFlush() {
-    if (!this._flushTImer) {
+    if (!this._flushTimer) {
       this._flushTimer = setTimeout(this.flush.bind(this), this._flushInterval);
     }
   }

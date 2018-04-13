@@ -18,6 +18,7 @@ let auditlogs = require('./auditlogs');
  *   resourceInterval: 10, // seconds
  *   crashTimeout: 5 * 1000, //milliseconds
  *   mock: false,
+ *   enable: true,
  *   credentials: {
  *     clientId:       '...',
  *     accessToken:    '...',
@@ -40,11 +41,12 @@ async function monitor(options) {
     resourceInterval: 10,
     crashTimeout: 5 * 1000,
     mock: false,
+    enable: true,
     logName: null,
     aws: null,
   });
   assert(options.authBaseUrl || options.credentials || options.statsumToken && options.sentryDSN ||
-         options.mock,
+         options.mock || !options.enable,
   'Must provide taskcluster credentials or authBaseUrl or sentryDSN and statsumToken');
   assert(options.project, 'Must provide a project name!');
 
@@ -78,14 +80,16 @@ async function monitor(options) {
     }
   }
 
-  // Create statsum client
-  let statsum = new Statsum(statsumToken, {
-    project: options.project,
-    emitErrors: options.reportStatsumErrors,
-  });
+  let statsum;
+  if (options.enable) {
+    statsum = new Statsum(statsumToken, {
+      project: options.project,
+      emitErrors: options.reportStatsumErrors,
+    });
+  }
 
   let auditlog;
-  if (options.aws && options.logName) {
+  if (options.enable && options.aws && options.logName) {
     auditlog = new auditlogs.FirehoseLog(Object.assign({}, options, {statsum}));
   } else {
     auditlog = new auditlogs.NoopLog();
@@ -94,7 +98,7 @@ async function monitor(options) {
 
   let m = new Monitor(sentryDSN, null, statsum, auditlog, options);
 
-  if (options.reportStatsumErrors) {
+  if (statsum && options.reportStatsumErrors) {
     statsum.on('error', err => m.reportError(err, 'warning'));
   }
   if (options.reportAuditLogErrors) {

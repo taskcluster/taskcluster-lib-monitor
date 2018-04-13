@@ -105,7 +105,7 @@ async function monitor(options) {
     auditlog.on('error', err => m.reportError(err, 'warning'));
   }
 
-  process.on('SIGTERM', async () => {
+  registerSigtermHandler(async () => {
     setTimeout(() => {
       console.log('Failed to flush after timeout!');
       process.exit(1);
@@ -165,6 +165,21 @@ async function monitor(options) {
   }
 
   return m;
+};
+
+// ensure that only one SIGTERM handler is registered at any time
+let _sigtermHandler = null;
+const registerSigtermHandler = sigtermHandler => {
+  unregisterSigtermHandler();
+  _sigtermHandler = sigtermHandler;
+  process.on('SIGTERM', sigtermHandler);
+};
+
+const unregisterSigtermHandler = () => {
+  if (_sigtermHandler) {
+    process.removeListener('SIGTERM', _sigtermHandler);
+    _sigtermHandler = null;
+  }
 };
 
 module.exports = monitor;

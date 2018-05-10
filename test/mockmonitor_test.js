@@ -134,7 +134,10 @@ suite('MockMonitor', () => {
 
   test('monitor.patchAWS(service)', async () => {
     let aws = require('aws-sdk');
-    let ec2 = new aws.EC2({region: 'us-west-2'});
+    let ec2 = new aws.EC2({
+      region: 'us-west-2',
+      credentials: new aws.Credentials('akid', 'fake', 'session'),
+    });
     monitor.patchAWS(ec2);
     await ec2.describeAvailabilityZones().promise().catch(err => {
       debug('Ignored ec2 error, we measure duration, not success, err: ', err);

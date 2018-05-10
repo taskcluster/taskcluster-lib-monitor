@@ -9,7 +9,7 @@
     "lint": "eslint src/*.js test/*.js",
     "prepublish": "yarn compile",
     "pretest": "yarn lint && yarn compile",
-    "test": "mocha --exit .test/*_test.js"
+    "test": "mocha .test/*_test.js"
   },
   "files": [
     "lib"

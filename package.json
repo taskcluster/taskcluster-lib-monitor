@@ -27,8 +27,7 @@
     "lodash": "^4.5.1",
     "raven": "^2.2.1",
     "statsum": "^0.5.1",
-    "taskcluster-client": "^3.0.3",
-    "usage": "^0.7.1"
+    "taskcluster-client": "^3.0.3"
   },
   "devDependencies": {
     "aws-sdk-mock": "^1.7.0",

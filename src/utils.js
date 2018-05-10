@@ -5,9 +5,9 @@
  * a function so that the real and fake classes can share
  * them.
  */
-let debug = require('debug')('taskcluster-lib-monitor');
-let usage = require('usage');
-let Promise = require('bluebird');
+const _ = require('lodash');
+const debug = require('debug')('taskcluster-lib-monitor');
+const Promise = require('bluebird');
 
 /**
  * Given an express api method, this will time it
@@ -87,16 +87,17 @@ export function resources(monitor, proc, seconds) {
   if (monitor._resourceInterval) {
     clearInterval(monitor._resourceInterval);
   }
+  let lastCpuUsage = null;
+  let lastMemoryUsage = null;
 
   let interval = setInterval(() => {
-    usage.lookup(process.pid, {keepHistory: true}, (err, result) => {
-      if (err) {
-        debug('Failed to get usage statistics, err: %s, %j',  err, err, err.stack);
-        return;
-      }
-      monitor.measure('process.' + proc + '.cpu', result.cpu);
-      monitor.measure('process.' + proc + '.mem', result.memory);
-    });
+    lastCpuUsage = process.cpuUsage(lastCpuUsage);
+    lastMemoryUsage = process.memoryUsage(lastMemoryUsage);
+
+    monitor.measure('process.' + proc + '.cpu', _.sum(Object.values(lastCpuUsage)));
+    monitor.measure('process.' + proc + '.cpu.user', lastCpuUsage.user);
+    monitor.measure('process.' + proc + '.cpu.system', lastCpuUsage.system);
+    monitor.measure('process.' + proc + '.mem', lastMemoryUsage.rss);
   }, seconds * 1000);
 
   monitor._resourceInterval = interval;

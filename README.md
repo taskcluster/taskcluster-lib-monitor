@@ -22,7 +22,7 @@ View the changelog on the [releases page](https://github.com/taskcluster/taskclu
 Requirements
 ------------
 
-This is tested on and should run on any of node `{6, 7, 8}`.
+This is tested on and should run on any of node `{8, 9, 10}`.
 
 Usage
 -----

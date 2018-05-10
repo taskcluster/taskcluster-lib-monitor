@@ -15,7 +15,7 @@ suite('Uncaught Errors', () => {
     authmock.setup();
 
     monitor = await monitoring({
-      project: 'tc-lib-monitor',
+      projectName: 'tc-lib-monitor',
       credentials: {clientId: 'test-client', accessToken: 'test'},
     });
   });

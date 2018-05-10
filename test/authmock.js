@@ -13,7 +13,7 @@ exports.setup = () => {
     .reply(200, function(uri) {
       debug('Responding to request for:', uri);
       return {
-        project: 'tc-lib-monitor',
+        projectName: 'tc-lib-monitor',
         dsn: {
           secret: 'https://abc:abc@app.getsentry.com/12345',
           public: 'unused',
@@ -25,7 +25,7 @@ exports.setup = () => {
     .reply(200, function(uri) {
       debug('Responding to request for:', uri);
       return {
-        project: 'tc-lib-monitor',
+        projectName: 'tc-lib-monitor',
         token: 'abc123',
         expires: date,
         baseUrl: 'https://statsum.taskcluster.net',

@@ -38,7 +38,7 @@ let load = loader({
   monitor: {
     requires: ['process', 'profile', 'cfg'],
     setup: ({process, profile, cfg}) => monitor({
-      project: 'taskcluster-foo',
+      projectName: 'taskcluster-foo',
       credentials: cfg.taskcluster.credentials,
       mock: cfg.monitor.mock,  // false in production, true in testing
       process,
@@ -50,15 +50,15 @@ let load = loader({
 The available options are:
 
  * `credentials`: `{clientId: '...', accessToken: '...'}` - Taskcluster credentials (no default - must be provided)
- * `project` - The project that will be written under to Statsum and Sentry. Must not be longer than 22 characters.
+ * `projectName` - The project that will be written under to Statsum and Sentry. Must not be longer than 22 characters.
  * `patchGlobal` - If true (the default), any uncaught errors in the service will be reported to Sentry.
  * `reportStatsumErrors` - If true (the default), any errors reporting to Statsum will be reported to Sentry.
  * `process` - If set to a string that identifies this process, cpu and memory
     usage of the process will be reported on an interval. Note: This can also be
     turned on by monitor.resources(...) later if wanted.  That allows for
     gracefully stopping as well.
- * `statsumToken` - a function that will return a Statsum token (`async (project) => {token, expires, baseUrl}`); the default value uses `credentials` to fetch a token from the Auth service.
- * `sentryDSN` - a function that will return a Sentry DSN (`async (project) => {dsn: {secret: '...'}, expires}`); the default value uses `credentials` to fetch a DSN from the Auth service.
+ * `statsumToken` - a function that will return a Statsum token (`async (projectName) => {token, expires, baseUrl}`); the default value uses `credentials` to fetch a token from the Auth service.
+ * `sentryDSN` - a function that will return a Sentry DSN (`async (projectName) => {dsn: {secret: '...'}, expires}`); the default value uses `credentials` to fetch a DSN from the Auth service.
  * `sentryOptions`:options given to the [raven.Client constructor](https://docs.sentry.io/clients/node/config/)
  * `mock` - If true, the monitoring object will be a fake that stores data for testing but does not report it (for testing).
  * `enable` - If false, the monitoring object will only report to the console (but not store data; for deployments without monitoring)
@@ -175,7 +175,7 @@ can be timed (in milliseconds) by wrapping them with `taskcluster-lib-monitor`:
 
 ```js
 let monitor = await monitoring({
-  project: 'tc-stats-collector',
+  projectName: 'tc-stats-collector',
   credentials: {clientId: 'test-client', accessToken: 'test'},
 });
 
@@ -198,7 +198,7 @@ as middleware:
 
 ```js
 let monitor = await monitoring({
-  project: 'tc-stats-collector',
+  projectName: 'tc-stats-collector',
   credentials: {clientId: 'test-client', accessToken: 'test'},
 });
 

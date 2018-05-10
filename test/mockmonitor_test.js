@@ -9,7 +9,7 @@ suite('MockMonitor', () => {
 
   setup(async () => {
     monitor = await monitoring({
-      project: 'mm',
+      projectName: 'mm',
       credentials: {clientId: 'test-client', accessToken: 'test'},
       mock: true,
     });

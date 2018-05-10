@@ -13,7 +13,7 @@ const Promise = require('bluebird');
  * Given an express api method, this will time it
  * and report via the monitor.
  */
-export function expressMiddleware(monitor, name) {
+exports.expressMiddleware = (monitor, name) => {
   return (req, res, next) => {
     let sent = false;
     let start = process.hrtime();
@@ -49,14 +49,14 @@ export function expressMiddleware(monitor, name) {
     res.once('close', send);
     next();
   };
-}
+};
 
 /**
  * Given a function that operates on a
  * single message, this will time it and
  * report via the monitor.
  */
-export function timedHandler(monitor, name, handler) {
+exports.timedHandler = (monitor, name, handler) => {
   return async (message) => {
     let start = process.hrtime();
     let success = 'success';
@@ -74,7 +74,7 @@ export function timedHandler(monitor, name, handler) {
       }
     }
   };
-}
+};
 
 /**
  * Given a process name, this will report basic
@@ -83,7 +83,7 @@ export function timedHandler(monitor, name, handler) {
  *
  * Returns a function that can be used to stop monitoring.
  */
-export function resources(monitor, proc, seconds) {
+exports.resources = (monitor, proc, seconds) => {
   if (monitor._resourceInterval) {
     clearInterval(monitor._resourceInterval);
   }
@@ -102,9 +102,9 @@ export function resources(monitor, proc, seconds) {
 
   monitor._resourceInterval = interval;
   return () => clearInterval(interval);
-}
+};
 
-export function timer(monitor, prefix, funcOrPromise) {
+exports.timer = (monitor, prefix, funcOrPromise) => {
   let start = process.hrtime();
   let done = (x) => {
     let d = process.hrtime(start);
@@ -122,9 +122,9 @@ export function timer(monitor, prefix, funcOrPromise) {
   }
   Promise.resolve(funcOrPromise).then(done, done);
   return funcOrPromise;
-}
+};
 
-export function patchAWS(monitor, service) {
+exports.patchAWS = (monitor, service) => {
   monitor = monitor.prefix(service.serviceIdentifier);
   let makeRequest = service.makeRequest;
   service.makeRequest = function(operation, params, callback) {
@@ -141,7 +141,7 @@ export function patchAWS(monitor, service) {
     });
     return r;
   };
-}
+};
 
 /**
  * A TimeKeeper is used for measuring arbitrary times.  This is nice when the
@@ -150,7 +150,7 @@ export function patchAWS(monitor, service) {
  * measurement submitted a single time.  An exception will be thrown if you try
  * to submit the same doo dad twice.
  */
-export class TimeKeeper {
+exports.TimeKeeper = class TimeKeeper {
 
   /**
    * Create a Timer and set the start time for the measurement.
@@ -174,4 +174,4 @@ export class TimeKeeper {
     let d = process.hrtime(this.start);
     this.monitor.measure(this.name, d[0] * 1000 + d[1] / 1000000);
   }
-}
+};

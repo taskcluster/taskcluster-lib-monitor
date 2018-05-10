@@ -19,7 +19,6 @@
   "dependencies": {
     "app-root-dir": "^1.0.2",
     "aws-sdk": "^2.30.0",
-    "babel-runtime": "^6.26.0",
     "bluebird": "^3.5.1",
     "debug": "^3.1.0",
     "lodash": "^4.5.1",
@@ -29,18 +28,15 @@
   },
   "devDependencies": {
     "aws-sdk-mock": "^1.7.0",
-    "babel-compile": "^2.0.0",
-    "babel-preset-taskcluster": "^3.0.0",
     "capture-console": "^1.0.1",
     "eslint-config-taskcluster": "^3.0.0",
     "mocha": "4.0.1",
     "mock-aws-s3": "^2.6.0",
     "nock": "^9.0.28",
-    "source-map-support": "^0.5.0",
     "taskcluster-lib-testing": "^2.0.2"
   },
   "main": "./src/index.js",
-  "engines" : {
-    "node" : ">=8.3.0"
+  "engines": {
+    "node": ">=8"
   }
 }

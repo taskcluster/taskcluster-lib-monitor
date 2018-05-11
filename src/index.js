@@ -56,10 +56,12 @@ async function monitor(options) {
     sentryOptions: {},
     gitVersionFile: '.git-version',
   });
-  assert(options.authBaseUrl || options.credentials || options.statsumToken && options.sentryDSN ||
+  assert(options.rootUrl, 'Must provide a rootUrl to taskcluster-lib-monitor');
+  assert(options.projectName, 'Must provide a project name (this is now `projectName` instead of `project`)');
+  assert(!options.authBaseUrl, 'authBaseUrl is deprecated.');
+  assert(options.credentials || options.statsumToken && options.sentryDSN ||
          options.mock || !options.enable,
   'Must provide taskcluster credentials or authBaseUrl or sentryDSN and statsumToken');
-  assert(options.projectName, 'Must provide a project name (this is now `projectName` instead of `project`)');
 
   // Return mock monitor, if mocking
   if (options.mock) {
@@ -78,11 +80,8 @@ async function monitor(options) {
     sentryDSN = () => options.sentryDSN;
   }
   // Use taskcluster credentials for statsumToken and sentryDSN, if given
-  if (options.credentials || options.authBaseUrl) {
-    let auth = new taskcluster.Auth({
-      credentials: options.credentials,
-      baseUrl: options.authBaseUrl,
-    });
+  if (options.credentials) {
+    let auth = new taskcluster.Auth(options);
     if (!statsumToken) {
       statsumToken = projectName => auth.statsumToken(projectName);
     }

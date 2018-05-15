@@ -38,8 +38,9 @@ let load = loader({
   monitor: {
     requires: ['process', 'profile', 'cfg'],
     setup: ({process, profile, cfg}) => monitor({
-      projectName: 'taskcluster-foo',
+      rootUrl: 'https://taskcluster.example.com',
       credentials: cfg.taskcluster.credentials,
+      projectName: 'taskcluster-foo',
       mock: cfg.monitor.mock,  // false in production, true in testing
       process,
     }),
@@ -49,6 +50,7 @@ let load = loader({
 
 The available options are:
 
+ * `rootUrl` - the rootUrl for this Taskcluster instance; used with `credentials` to fetch statsum and sentry keys
  * `credentials`: `{clientId: '...', accessToken: '...'}` - Taskcluster credentials (no default - must be provided)
  * `projectName` - The project that will be written under to Statsum and Sentry.
  * `patchGlobal` - If true (the default), any uncaught errors in the service will be reported to Sentry.

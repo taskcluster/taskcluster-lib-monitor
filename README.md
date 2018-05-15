@@ -50,7 +50,7 @@ let load = loader({
 The available options are:
 
  * `credentials`: `{clientId: '...', accessToken: '...'}` - Taskcluster credentials (no default - must be provided)
- * `projectName` - The project that will be written under to Statsum and Sentry. Must not be longer than 22 characters.
+ * `projectName` - The project that will be written under to Statsum and Sentry.
  * `patchGlobal` - If true (the default), any uncaught errors in the service will be reported to Sentry.
  * `reportStatsumErrors` - If true (the default), any errors reporting to Statsum will be reported to Sentry.
  * `process` - If set to a string that identifies this process, cpu and memory

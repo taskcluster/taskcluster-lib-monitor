@@ -1,5 +1,5 @@
 let debug = require('debug')('test');
-let tcUrl = require('taskcluster-lib-urls');
+let libUrls = require('taskcluster-lib-urls');
 let nock = require('nock');
 
 let testclients = {
@@ -8,7 +8,7 @@ let testclients = {
 
 exports.setup = () => {
   let date = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
-  nock(tcUrl.testRootUrl())
+  nock(libUrls.testRootUrl())
     .persist()
     .get(/api\/auth\/v1\/sentry\/tc-lib-monitor\/dsn/)
     .reply(200, function(uri) {

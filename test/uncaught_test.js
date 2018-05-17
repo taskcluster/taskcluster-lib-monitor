@@ -8,7 +8,7 @@ suite('Uncaught Errors', () => {
   let fork = require('child_process').fork;
   let _ = require('lodash');
   let Promise = require('bluebird');
-  let tcUrl = require('taskcluster-lib-urls');
+  let libUrls = require('taskcluster-lib-urls');
 
   let monitor = null;
 
@@ -16,7 +16,7 @@ suite('Uncaught Errors', () => {
     authmock.setup();
 
     monitor = await monitoring({
-      rootUrl: tcUrl.testRootUrl(),
+      rootUrl: libUrls.testRootUrl(),
       projectName: 'tc-lib-monitor',
       credentials: {clientId: 'test-client', accessToken: 'test'},
     });

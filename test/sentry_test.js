@@ -6,7 +6,7 @@ suite('Sentry', () => {
   let nock = require('nock');
   let authmock = require('./authmock');
   let capcon = require('capture-console');
-  let tcUrl = require('taskcluster-lib-urls');
+  let libUrls = require('taskcluster-lib-urls');
 
   let monitor = null;
 
@@ -15,7 +15,7 @@ suite('Sentry', () => {
       authmock.setup();
 
       monitor = await monitoring({
-        rootUrl: tcUrl.testRootUrl(),
+        rootUrl: libUrls.testRootUrl(),
         projectName: 'tc-lib-monitor',
         credentials: {clientId: 'test-client', accessToken: 'test'},
         patchGlobal: false,
@@ -72,7 +72,7 @@ suite('Sentry', () => {
   suite('not enabled', function() {
     suiteSetup(async () => {
       monitor = await monitoring({
-        rootUrl: tcUrl.testRootUrl(),
+        rootUrl: libUrls.testRootUrl(),
         projectName: 'tc-lib-monitor',
         enable: false,
       });

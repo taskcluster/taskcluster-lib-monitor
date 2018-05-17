@@ -3,14 +3,14 @@ suite('MockMonitor', () => {
   let Promise = require('bluebird');
   let monitoring = require('../');
   let debug = require('debug')('test');
-  let tcUrl = require('taskcluster-lib-urls');
+  let libUrls = require('taskcluster-lib-urls');
   let testing = require('taskcluster-lib-testing');
 
   let monitor = null;
 
   setup(async () => {
     monitor = await monitoring({
-      rootUrl: tcUrl.testRootUrl(),
+      rootUrl: libUrls.testRootUrl(),
       projectName: 'mm',
       credentials: {clientId: 'test-client', accessToken: 'test'},
       mock: true,

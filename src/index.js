@@ -56,7 +56,7 @@ async function monitor(options) {
     sentryOptions: {},
     gitVersionFile: '.git-version',
   });
-  assert(options.rootUrl, 'Must provide a rootUrl to taskcluster-lib-monitor');
+  assert(options.rootUrl || options.mock, 'Must provide a rootUrl to taskcluster-lib-monitor');
   assert(options.projectName, 'Must provide a project name (this is now `projectName` instead of `project`)');
   assert(!options.authBaseUrl, 'authBaseUrl is deprecated.');
   assert(options.credentials || options.statsumToken && options.sentryDSN ||

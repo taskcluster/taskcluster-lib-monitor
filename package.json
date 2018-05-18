@@ -23,8 +23,8 @@
     "debug": "^3.1.0",
     "lodash": "^4.5.1",
     "raven": "^2.2.1",
-    "statsum": "^0.5.1",
-    "taskcluster-client": "^5.0.0"
+    "statsum": "^0.6.0",
+    "taskcluster-client": "^10.0.0"
   },
   "devDependencies": {
     "aws-sdk-mock": "^1.7.0",
@@ -34,7 +34,7 @@
     "mock-aws-s3": "^2.6.0",
     "nock": "^9.0.28",
     "taskcluster-lib-testing": "^2.0.2",
-    "taskcluster-lib-urls": "^1.0.0"
+    "taskcluster-lib-urls": "^1.1.0"
   },
   "main": "./src/index.js",
   "engines": {

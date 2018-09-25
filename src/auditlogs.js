@@ -99,10 +99,12 @@ class KinesisLog extends events.EventEmitter {
       let {records} = chunk;
       let res;
       try {
-        res = await this._kinesis.putRecord({
+        let krecords = records.map(line => {
+          return {Data: line.line, PartitionKey: AUDITLOG_PARTITION_KEY};
+        });
+        res = await this._kinesis.putRecords({
           StreamName: this._logName,
-          PartitionKey: AUDITLOG_PARTITION_KEY,
-          Data: records.map(line => line.line).join(''),
+          Records: krecords,
         }).promise();
       } catch (err) {
         if (!err.statusCode) {

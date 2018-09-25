@@ -18,17 +18,15 @@ suite('Audit Logs', () => {
       records[params.StreamName] = [];
       callback(null, {StreamDescription: {StreamStatus: 'ACTIVE'}});
     });
-    AWS.mock('Kinesis', 'putRecord', (params, callback) => {
-      if (params.Data.indexOf('\n') === -1) {
+    AWS.mock('Kinesis', 'putRecords', (params, callback) => {
+      if (params.Records.length <= 0) {
         return callback(new Error('Must always submit at least 1 record!'), null);
       }
-      if (Buffer.byteLength(params.Data, 'utf-8') > 1000 * 1000) {
+      if (Buffer.byteLength(params.Records.join(','), 'utf-8') > 1000 * 1000) {
         return callback(new Error('Record size too large!'), null);
       }
       let StreamName = params.StreamName;
-      let r = params.Data.split('\n').map(x => x.trim());
-      r.pop(); // To get rid of empty space at end
-      records[StreamName] = records[StreamName].concat(r);
+      records[StreamName] = records[StreamName].concat(params.Records);
       callback(null, {FailedPutCount: 0});
     });
 
@@ -57,7 +55,7 @@ suite('Audit Logs', () => {
     monitor.log(subject);
     await monitor.flush();
     assert.equal(records[logName].length, 1);
-    assert.deepEqual(records[logName].map(JSON.parse)[0], subject);
+    assert.deepEqual(JSON.parse(records[logName][0]['Data']), subject);
   });
 
   test('should not write 0 logs on flush', async function() {
@@ -70,7 +68,7 @@ suite('Audit Logs', () => {
     monitor.log(subject);
     await monitor.flush();
     assert.equal(records[logName].length, 1);
-    assert.deepEqual(records[logName].map(JSON.parse)[0], subject);
+    assert.deepEqual(JSON.parse(records[logName][0]['Data']), subject);
   });
 
   test('should write logs on 500 records', async function() {
@@ -78,7 +76,9 @@ suite('Audit Logs', () => {
     subjects.forEach(subject => monitor.log(subject));
     await monitor.flush();
     assert.equal(records[logName].length, 5302);
-    assert.deepEqual(records[logName].map(JSON.parse), subjects);
+    assert.deepEqual(records[logName].map(l => {
+      return JSON.parse(l['Data']);
+    }), subjects);
   });
 
   test('should write logs on too many bytes', async function() {
@@ -87,7 +87,9 @@ suite('Audit Logs', () => {
     subjects.forEach(subject => monitor.log(subject));
     await monitor.flush();
     assert.equal(records[logName].length, 250);
-    assert.deepEqual(records[logName].map(JSON.parse), subjects);
+    assert.deepEqual(records[logName].map(l => {
+      return JSON.parse(l['Data']);
+    }), subjects);
   });
 
   test('should write logs on timeout', async function() {
@@ -95,13 +97,13 @@ suite('Audit Logs', () => {
     monitor.log(subject);
     await testing.poll(async () => {
       assert.equal(records[logName].length, 1);
-      assert.deepEqual(records[logName].map(JSON.parse)[0], subject);
+      assert.deepEqual(JSON.parse(records[logName][0]['Data']), subject);
     });
     subject = {test: 2000, timerthing: true};
     monitor.log(subject);
     await testing.poll(async () => {
       assert.equal(records[logName].length, 2);
-      assert.deepEqual(records[logName].map(JSON.parse)[1], subject);
+      assert.deepEqual(JSON.parse(records[logName][1]['Data']), subject);
     });
   });
 
@@ -124,10 +126,7 @@ suite('Audit Logs', () => {
         tried = true;
         return callback({statusCode: 500, message: 'uh oh!', retryable: true}, null);
       }
-      let StreamName = params.StreamName;
-      let r = params.Data.split('\n').map(x => x.trim());
-      r.pop();
-      records[StreamName] = records[StreamName].concat(r);
+      records[StreamName] = records[StreamName].concat(params.Records);
       callback(null, {FailedPutCount: 0});
     });
     monitor.log({test: 'foobar'});
@@ -141,17 +140,15 @@ suite('Audit Logs', () => {
   test('should resubmit all on error even with multiple chunks', async function() {
     let tried = false;
     let submissions = 0;
-    AWS.restore('Kinesis', 'putRecord');
-    AWS.mock('Kinesis', 'putRecord', (params, callback) => {
+    AWS.restore('Kinesis', 'putRecords');
+    AWS.mock('Kinesis', 'putRecords', (params, callback) => {
       submissions++;
       if (!tried) {
         tried = true;
         return callback({statusCode: 500, message: 'uh oh!', retryable: true}, null);
       }
       let StreamName = params.StreamName;
-      let r = params.Data.split('\n').map(x => x.trim());
-      r.pop();
-      records[StreamName] = records[StreamName].concat(r);
+      records[StreamName] = records[StreamName].concat(params.Records);
       callback(null, {FailedPutCount: 0});
     });
     let subjects = _.range(999).map(i => ({foo: Array(5000).join('x')}));
